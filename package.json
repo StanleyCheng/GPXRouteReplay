@@ -1,0 +1,16 @@
+{
+  "name": "gpx-route-replay",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node route-core.test.mjs && node route-recorder.test.mjs"
+  },
+  "dependencies": {
+    "@garmin/fitsdk": "^21.208.0",
+    "mp4-muxer": "^5.2.2"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.9"
+  }
+}

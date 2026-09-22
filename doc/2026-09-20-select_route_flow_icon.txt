@@ -1,0 +1,31 @@
+What changed
+
+Selected the Route Flow concept as the GPX/FIT Route Replay web app icon, refined it into a final master, connected new production-size assets to the page metadata, and named the web app "GPX/FIT 路線回放".
+
+Why it changed
+
+The Route Flow concept most directly communicates the app's route playback purpose while remaining recognizable at favicon and mobile home-screen sizes.
+
+How it was implemented
+
+Refined the selected generated concept with the built-in image generation workflow while preserving its forest-black tile, neon-lime S-shaped route, lower-left play symbol, and red upper-right destination. Flattened the generated texture to the app's three exact brand colors and rebuilt a clean rounded-square alpha edge so the icon remains crisp at favicon size. Saved the 1254 by 1254 RGBA master under output/imagegen/, created 192 by 192 and 180 by 180 RGBA derivatives with macOS sips, and updated index.html to reference the new versioned filenames. Updated the document title, Open Graph title, application name, and Apple home-screen title to "GPX/FIT 路線回放". Updated the build pipeline to copy and serve the selected icons for both the new filenames and the legacy icon URLs. The previous source icon files were retained unchanged.
+
+Verification
+
+- Confirmed the final master and both production derivatives are valid RGBA PNG files.
+- Confirmed the favicon is exactly 192 by 192 pixels.
+- Confirmed the Apple touch icon is exactly 180 by 180 pixels.
+- Ran npm test.
+- Ran npm run build and reviewed the generated asset paths.
+
+Affected files
+
+- index.html
+- public/favicon-route-flow.png
+- public/apple-touch-icon-route-flow.png
+- output/imagegen/icon-option-1-route-flow-final.png
+- build.mjs
+- docs/index.html
+- docs/favicon-route-flow.png
+- docs/apple-touch-icon-route-flow.png
+- doc/2026-09-20-select_route_flow_icon.txt

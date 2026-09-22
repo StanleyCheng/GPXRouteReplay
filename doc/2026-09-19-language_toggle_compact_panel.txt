@@ -1,0 +1,24 @@
+What changed:
+- Added a fixed [ENG|中文] segmented language toggle at the top-right corner of the screen, switching all UI text between English and Traditional Chinese.
+- Added a full i18n layer in index.html: a STRINGS dictionary ('zh-Hant' default, 'en') with ~80 keys per language covering static labels, aria-labels, tooltips, alt text, the record dialog, and all dynamic status/error messages via a t(key, params) template function. Language persists in localStorage ('gpxreplay-lang'); <html lang> and document.title follow the selection; live state (status toast, progress aria-valuetext, play-button label, empty-state message) is re-rendered on switch. route-core/route-recorder English error messages are mapped to keys at the catch sites (ERROR_KEY_BY_MESSAGE) with raw fallback. Units (km/m/bpm) stay unlocalized.
+- Rebuilt the retractable control panel into two slim rows (~110px expanded height vs ~200px+): a compressed stats strip plus one transport row (play, restart, progress slider, speed, settings gear). The five option toggles and the import button moved into a settings popover above the gear as icon-only controls (inline SVG icons) with translated CSS tooltips.
+- Removed the old toggle-grid/secondary-controls styles and rewrote all three media queries (580px, 390px, short-height) for the new structure; recalculated .rec-indicator bottom offsets (150/130/120px) and fitRouteOverview bottom padding (260 -> 150 expanded).
+- Adjusted .topbar right inset so the language pill never overlaps it.
+
+Why it changed:
+- User request: bilingual UI (English / Traditional Chinese, defaulting to Chinese) and a much more compact control panel that occupies less space, especially vertically, on desktop and mobile while keeping good UI/UX.
+
+How it was implemented:
+- Planned with codebase research and an independent plan review (read-only reviewer subagent) that verified the full string inventory, DOM constraints (checkboxes stay direct children of labels for recordToggle.parentElement.title; input-before-icon sibling order for the record dot), CSS pitfalls, and build risks; all P1 findings were incorporated.
+- Implemented by a worker subagent in index.html only; route-core.mjs, route-recorder.mjs, build.mjs, and tests untouched.
+- Hidden checkbox inputs are preserved under each icon toggle so all existing .checked/disabled/change-listener JS keeps working; each input carries a translated aria-label for accessibility.
+
+Verification:
+- npm test: route filtering and route-recorder tests passed.
+- npm run build: succeeded; docs/index.html regenerated.
+- Browser smoke test (agent-browser + CDP on the built site): desktop zh-Hant initial render, settings popover with correct checked states and tooltips, ENG switch re-rendering everything including the live status toast, mobile 390x844 layout with no collisions, and localStorage persistence across navigation.
+
+Affected files:
+- index.html
+- docs/index.html (generated)
+- doc/2026-09-19-language_toggle_compact_panel.txt

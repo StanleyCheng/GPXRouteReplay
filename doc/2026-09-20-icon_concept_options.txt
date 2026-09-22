@@ -1,0 +1,25 @@
+What changed
+
+Added three square web app icon concepts for GPX/FIT Route Replay under output/imagegen/:
+- icon-option-1-route-flow.png
+- icon-option-2-replay-compass.png
+- icon-option-3-elevation-track.png
+
+Why it changed
+
+The app needs a small set of simple, elegant icon directions that can be compared before choosing a replacement for the current web app icon.
+
+How it was implemented
+
+Generated three separate minimalist logo-brand concepts using the app's existing forest-black, neon-lime, and route-red palette. Each concept uses a bold, text-free symbol intended to remain recognizable at favicon and home-screen sizes. The generated PNG files are 1254 by 1254 pixels.
+
+Verification
+
+Confirmed all three PNG files exist and have square 1254 by 1254 pixel dimensions with macOS sips.
+
+Affected files
+
+- output/imagegen/icon-option-1-route-flow.png
+- output/imagegen/icon-option-2-replay-compass.png
+- output/imagegen/icon-option-3-elevation-track.png
+- doc/2026-09-20-icon_concept_options.txt

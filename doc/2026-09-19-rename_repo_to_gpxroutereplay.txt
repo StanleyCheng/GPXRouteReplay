@@ -1,0 +1,26 @@
+What changed:
+- Renamed the GitHub repository from StanleyCheng/gpx_route to StanleyCheng/GPXRouteReplay.
+- Updated the repository homepage (About link) to https://stanleycheng.github.io/GPXRouteReplay/.
+- Updated the local git remote URL to https://github.com/StanleyCheng/GPXRouteReplay.
+- Updated the site origin in build.mjs from https://stanleycheng.github.io/gpx_route to https://stanleycheng.github.io/GPXRouteReplay, which updates the og:image meta tag in the built site.
+- Regenerated docs/ with npm run build so the published site references the new URL.
+
+Why it changed:
+- Rebranding the project to GPXRouteReplay; the GitHub Pages URL moves to stanleycheng.github.io/GPXRouteReplay/ (Pages URLs are case-sensitive on the repo-name segment, so the capitalization is intentional).
+
+How it was implemented:
+- gh repo rename GPXRouteReplay -R StanleyCheng/gpx_route
+- gh repo edit StanleyCheng/GPXRouteReplay --homepage https://stanleycheng.github.io/GPXRouteReplay/
+- git remote set-url origin https://github.com/StanleyCheng/GPXRouteReplay
+- Edited the __SITE_ORIGIN__ replacement in build.mjs, then ran npm test and npm run build.
+- Reinstalled node_modules with npm ci first because the synced node_modules contained a darwin-x64 esbuild binary incompatible with this Windows machine.
+
+Verification:
+- npm test: route filtering and route-recorder tests passed.
+- npm run build: succeeded; docs/index.html og:image now points to https://stanleycheng.github.io/GPXRouteReplay/og.png.
+- gh api repos/StanleyCheng/GPXRouteReplay/pages: Pages still enabled (main /docs), html_url https://stanleycheng.github.io/GPXRouteReplay/.
+
+Affected files:
+- build.mjs
+- docs/index.html (generated)
+- doc/2026-09-19-rename_repo_to_gpxroutereplay.txt
