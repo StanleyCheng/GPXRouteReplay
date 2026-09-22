@@ -1,8 +1,36 @@
-# GPXRouteReplay
+<p align="center">
+  <a href="https://stanleycheng.github.io/GPXRouteReplay/">
+    <img src="docs/favicon-route-flow.png" width="128" height="128" alt="GPXRouteReplay app icon: a lime route line with a play button and finish dot on a dark rounded square">
+  </a>
+</p>
 
-Replay a GPX track or a Garmin FIT activity as an animated 2D/3D map — right in the browser, with nothing uploaded to a server.
+<h1 align="center">GPXRouteReplay</h1>
 
-### ▶ [**Open the live app**](https://stanleycheng.github.io/GPXRouteReplay/)
+<p align="center">
+  <strong>Replay GPX tracks and Garmin FIT activities as an animated 2D/3D map — in the browser, with nothing uploaded to a server.</strong>
+</p>
+
+<p align="center">
+  <a href="https://stanleycheng.github.io/GPXRouteReplay/"><strong>▶ Open the live app</strong></a>
+</p>
+
+---
+
+## Summary
+
+GPXRouteReplay is a single-page web app for reviewing recorded workouts and rides. Pick a `.gpx` track or a Garmin activity `.fit` file from your device and the app cleans it up, draws it on an interactive map, and animates a marker along the route while distance, elapsed time, elevation, and heart rate stay in sync. It is built for anyone who wants to see where they went — runners, cyclists, hikers, and the people they send the link to — without installing anything or handing their GPS data to a service.
+
+| | |
+| --- | --- |
+| **Input** | `.gpx` tracks and Garmin activity `.fit` files (Garmin FIT SDK) |
+| **Output** | Interactive 2D/3D map replay, plus MP4/WebM screen recording of the replay |
+| **Processing** | 100% client-side: parsing, filtering, rendering, and video encoding happen in your browser |
+| **Storage** | Route stays in local storage on your own device; nothing is uploaded |
+| **Languages** | English and Traditional Chinese, switchable in the header |
+| **Stack** | Vanilla ES modules, MapLibre GL JS, esbuild, `@garmin/fitsdk`, `mp4-muxer` |
+| **Live app** | <https://stanleycheng.github.io/GPXRouteReplay/> |
+
+### Preview
 
 [![GPX/FIT Route Replay preview](docs/og.png)](https://stanleycheng.github.io/GPXRouteReplay/)
 
