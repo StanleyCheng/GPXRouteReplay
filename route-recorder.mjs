@@ -3,6 +3,7 @@ import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 const MAX_OUTPUT_WIDTH = 1920;
 const MAX_OUTPUT_HEIGHT = 1080;
 const MAX_ENCODER_QUEUE = 60;
+const MAX_MANUAL_ENCODER_QUEUE = 4;
 const KEYFRAME_INTERVAL_MICROSECONDS = 2_000_000;
 const H264_CODECS = [
   'avc1.42E028', // H.264 constrained baseline, level 4.0
@@ -129,7 +130,8 @@ const pickEncoderConfig = async (width, height, bitrate, framerate) => {
 const createWebCodecsRecorder = (sourceCanvas, {
   fps,
   bitrate,
-  routeName
+  routeName,
+  frameDriven
 }) => {
   let muxer = null;
   let encoder = null;
@@ -164,7 +166,7 @@ const createWebCodecsRecorder = (sourceCanvas, {
     if (!encoder || !encodingCanvas || !encodingContext) return;
     const elapsedMs = Math.max(0, now - startMs);
     const elapsedFrameIndex = Math.max(0, Math.floor(elapsedMs * fps / 1000));
-    const frameIndex = force
+    const frameIndex = frameDriven ? frameCount : force
       ? Math.max(lastFrameIndex + 1, elapsedFrameIndex)
       : elapsedFrameIndex;
     if (!force && frameIndex <= lastFrameIndex) return;
@@ -174,7 +176,7 @@ const createWebCodecsRecorder = (sourceCanvas, {
       encodingContext.drawImage(sourceCanvas, 0, 0, width, height);
       const frame = new VideoFrame(encodingCanvas, {
         timestamp,
-        duration: Math.round(1_000_000 / fps)
+        duration: Math.round((frameIndex + 1) * 1_000_000 / fps) - timestamp
       });
       const keyFrame = frameCount === 0 ||
         timestamp - lastKeyframeTimestamp >= KEYFRAME_INTERVAL_MICROSECONDS;
@@ -196,6 +198,16 @@ const createWebCodecsRecorder = (sourceCanvas, {
     if (!recording) return;
     encodeFrame(now);
     if (recording) captureHandle = requestAnimationFrame(captureFrame);
+  };
+
+  const capture = async () => {
+    if (!recording) return;
+    if (encoderError) throw encoderError;
+    // Slow encoders delay playback instead of dropping route frames.
+    if (encoder.encodeQueueSize >= MAX_MANUAL_ENCODER_QUEUE) await encoder.flush();
+    if (!recording) return;
+    encodeFrame(performance.now(), true);
+    if (encoderError) throw encoderError;
   };
 
   const start = async () => {
@@ -233,17 +245,16 @@ const createWebCodecsRecorder = (sourceCanvas, {
     startMs = performance.now();
     recording = true;
     encodeFrame(startMs, true);
-    captureHandle = requestAnimationFrame(captureFrame);
+    if (!frameDriven) captureHandle = requestAnimationFrame(captureFrame);
   };
 
   const stop = async () => {
     if (!recording || !encoder || !muxer) return null;
     recording = false;
     cancelCapture();
-    const durationMs = performance.now() - startMs;
+    // Duplicate the last complete composite, never an in-flight map frame.
     encodeFrame(performance.now(), true);
-    // A final adjacent sample gives players an exact duration for the last frame.
-    encodeFrame(performance.now(), true);
+    const durationMs = frameDriven ? frameCount * 1000 / fps : performance.now() - startMs;
     const activeEncoder = encoder;
     const activeMuxer = muxer;
     try {
@@ -273,7 +284,13 @@ const createWebCodecsRecorder = (sourceCanvas, {
     frameCount = 0;
   };
 
-  return { start, stop, discard, isRecording: () => recording, codecLabel: 'video/mp4' };
+  return {
+    start, stop, discard, capture,
+    isRecording: () => recording,
+    frameDriven,
+    get durationMs() { return frameDriven ? frameCount * 1000 / fps : performance.now() - startMs; },
+    codecLabel: 'video/mp4'
+  };
 };
 
 const isSafari = () => globalThis.navigator?.vendor === 'Apple Computer, Inc.';
@@ -297,6 +314,21 @@ const createMediaRecorderFallback = (canvas, {
   let startMs = 0;
   let recorderError = null;
   let mimeType = '';
+  let pausedAt = null;
+  let pausedMs = 0;
+
+  const pause = () => {
+    if (!recording || recorder?.state !== 'recording') return;
+    recorder.pause();
+    pausedAt = performance.now();
+  };
+  const resume = () => {
+    if (!recording || recorder?.state !== 'paused') return;
+    recorder.resume();
+    pausedMs += performance.now() - pausedAt;
+    pausedAt = null;
+  };
+  const elapsedMs = () => (pausedAt ?? performance.now()) - startMs - pausedMs;
 
   const releaseStream = () => {
     if (!stream) return;
@@ -313,6 +345,8 @@ const createMediaRecorderFallback = (canvas, {
     chunks = [];
     recorderError = null;
     startMs = performance.now();
+    pausedAt = null;
+    pausedMs = 0;
     stream = canvas.captureStream(fps);
     try {
       recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: bitrate });
@@ -340,7 +374,7 @@ const createMediaRecorderFallback = (canvas, {
   const stop = async () => {
     if (!recording || !recorder) return null;
     recording = false;
-    const durationMs = performance.now() - startMs;
+    const durationMs = elapsedMs();
     const activeRecorder = recorder;
     await new Promise((resolve) => {
       let settled = false;
@@ -388,7 +422,10 @@ const createMediaRecorderFallback = (canvas, {
     start,
     stop,
     discard,
+    pause,
+    resume,
     isRecording: () => recording,
+    get durationMs() { return elapsedMs(); },
     get codecLabel() { return mimeBase(mimeType || 'video'); }
   };
 };
@@ -396,7 +433,8 @@ const createMediaRecorderFallback = (canvas, {
 export function createMapRecorder(canvas, {
   fps = 30,
   bitrate = 5_000_000,
-  routeName = ''
+  routeName = '',
+  frameDriven = false
 } = {}) {
   if (!canvas) throw new Error('A map canvas is required for recording.');
   if (!isRecordingSupported()) {
@@ -405,7 +443,7 @@ export function createMapRecorder(canvas, {
   let backend = null;
   let recording = false;
 
-  const options = { fps, bitrate, routeName };
+  const options = { fps, bitrate, routeName, frameDriven };
   const start = async () => {
     if (recording) return;
     let webCodecsError = null;
@@ -447,7 +485,12 @@ export function createMapRecorder(canvas, {
     start,
     stop,
     discard,
+    capture: () => backend?.capture?.(),
+    pause: () => backend?.pause?.(),
+    resume: () => backend?.resume?.(),
     isRecording: () => recording,
+    get frameDriven() { return Boolean(backend?.frameDriven); },
+    get durationMs() { return backend?.durationMs; },
     get codecLabel() { return backend?.codecLabel || 'video/mp4'; }
   };
 }

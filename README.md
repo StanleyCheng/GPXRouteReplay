@@ -68,12 +68,15 @@ Built and tested for Safari 16.4+ and current Chrome/Edge. 3D terrain and video 
 
 ```bash
 npm ci                                  # install exact dependency versions
-npm test                                # route filtering + timestamp normalization tests
+npm test                                # route processing, map readiness, and recording tests
 npm run build                           # regenerate docs/ (GitHub Pages) and dist/ (OpenAI hosting)
+npm run test:build                      # check app entry points and bundled FIT decoding
 python -m http.server 8000 --directory docs   # serve the built site locally
 ```
 
 Run `npm test` before `npm run build`. Rebuild whenever `index.html`, `route-core.mjs`, dependencies, or `public/` assets change, and commit the regenerated `docs/` output together with the source change.
+
+Opening the root `index.html` directly opens the built app in `docs/index.html`. Rebuild after source edits to update that app. Map tiles and fonts still require an internet connection.
 
 ### Project structure
 

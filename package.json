@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
-    "test": "node route-core.test.mjs && node route-recorder.test.mjs"
+    "test:build": "node build.test.mjs",
+    "test": "node route-core.test.mjs && node route-recorder.test.mjs && node map-readiness.test.mjs"
   },
   "dependencies": {
     "@garmin/fitsdk": "^21.208.0",

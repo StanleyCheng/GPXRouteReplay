@@ -18,7 +18,7 @@ const fitSdkBundle = await bundle({
     contents: "export { Decoder, Stream, Utils } from '@garmin/fitsdk';",
     resolveDir: process.cwd()
   },
-  format: 'esm'
+  globalName: 'GarminFitSdk'
 });
 const routeCoreBundle = await bundle({
   entryPoints: ['route-core.mjs'],
@@ -28,15 +28,21 @@ const routeRecorderBundle = await bundle({
   entryPoints: ['route-recorder.mjs'],
   globalName: 'RouteRecorder'
 });
+const mapReadinessBundle = await bundle({
+  entryPoints: ['map-readiness.mjs'],
+  globalName: 'MapReadiness'
+});
 const html = (await readFile('index.html', 'utf8'))
-  .replace('__ROUTE_CORE_BUNDLE__', routeCoreBundle)
-  .replace('__ROUTE_RECORDER_BUNDLE__', routeRecorderBundle);
+  .replace('__APP_BUILD_STATE__', 'ready')
+  .replace('/*__ROUTE_CORE_BUNDLE__*/', routeCoreBundle)
+  .replace('/*__MAP_READINESS_BUNDLE__*/', mapReadinessBundle)
+  .replace('/*__ROUTE_RECORDER_BUNDLE__*/', routeRecorderBundle)
+  .replace('type="application/x-route-app"', 'type="module"');
 const pagesHtml = html
   .replaceAll('__SITE_ORIGIN__', 'https://stanleycheng.github.io/GPXRouteReplay')
   .replaceAll('__MAPTILER_KEY__', '')
   .replace('href="/favicon-route-flow.png', 'href="./favicon-route-flow.png')
-  .replace('href="/apple-touch-icon-route-flow.png', 'href="./apple-touch-icon-route-flow.png')
-  .replace("import('/fit-sdk.js')", "import('./fit-sdk.js')");
+  .replace('href="/apple-touch-icon-route-flow.png', 'href="./apple-touch-icon-route-flow.png');
 const socialImage = (await readFile('public/og.png')).toString('base64');
 const faviconImage = (await readFile('public/favicon-route-flow.png')).toString('base64');
 const appleTouchIcon = (await readFile('public/apple-touch-icon-route-flow.png')).toString('base64');
