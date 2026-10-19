@@ -67,3 +67,60 @@ export function prepareTrack(rawPoints) {
     removedPoints: filtered.removedPoints
   };
 }
+
+// Return original point indices for drawing only; timestamps, distances and GPS
+// positions continue to use the complete track. Iterative Douglas-Peucker avoids
+// projecting thousands of subpixel vertices on every 3D map frame.
+export function simplifyRouteIndices(points, toleranceMeters = 0.75) {
+  if (points.length < 3 || toleranceMeters <= 0) return points.map((_, index) => index);
+  const radians = Math.PI / 180;
+  const metersPerDegree = 6371000 * radians;
+  const longitudeScale = metersPerDegree * points.reduce((maximum, point) => Math.max(maximum, Math.cos(point.lat * radians)), 0);
+  let longitude = points[0].lon;
+  const projected = points.map((point, index) => {
+    if (index) longitude += ((point.lon - points[index - 1].lon + 540) % 360) - 180;
+    return {
+      x: (longitude - points[0].lon) * longitudeScale,
+      y: (point.lat - points[0].lat) * metersPerDegree,
+      z: Number.isFinite(point.ele) ? point.ele : 0
+    };
+  });
+  const retained = new Uint8Array(points.length);
+  retained[0] = retained[points.length - 1] = 1;
+  const pending = [[0, points.length - 1]];
+  const toleranceSquared = toleranceMeters ** 2;
+  while (pending.length) {
+    const [first, last] = pending.pop();
+    const a = projected[first];
+    const b = projected[last];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const dz = b.z - a.z;
+    const lengthSquared = dx * dx + dy * dy + dz * dz;
+    let furthest = -1;
+    let maximum = toleranceSquared;
+    for (let index = first + 1; index < last; index++) {
+      const point = projected[index];
+      const mix = lengthSquared ? Math.max(0, Math.min(1, ((point.x - a.x) * dx + (point.y - a.y) * dy + (point.z - a.z) * dz) / lengthSquared)) : 0;
+      const distanceSquared = (point.x - a.x - mix * dx) ** 2 + (point.y - a.y - mix * dy) ** 2 + (point.z - a.z - mix * dz) ** 2;
+      if (distanceSquared > maximum) {
+        maximum = distanceSquared;
+        furthest = index;
+      }
+    }
+    if (furthest !== -1) {
+      retained[furthest] = 1;
+      pending.push([first, furthest], [furthest, last]);
+    }
+  }
+  // Keep ground-sampling anchors even on straight tracks without elevation data,
+  // so terrain between distant endpoints still shapes the rendered line.
+  let lastAnchor = 0;
+  for (let index = 1; index < points.length; index++) {
+    if (retained[index] || haversine(points[lastAnchor], points[index]) >= 50) {
+      retained[index] = 1;
+      lastAnchor = index;
+    }
+  }
+  return points.flatMap((_, index) => retained[index] ? [index] : []);
+}

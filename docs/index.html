@@ -883,7 +883,7 @@
   <p class="status" id="status" aria-live="polite"></p>
 
   <script src="https://unpkg.com/maplibre-gl@5.19.0/dist/maplibre-gl.js"></script>
-  <script>var RouteCore=(()=>{var m=Object.defineProperty;var d=Object.getOwnPropertyDescriptor;var f=Object.getOwnPropertyNames;var _=Object.prototype.hasOwnProperty;var M=(e,t)=>{for(var n in t)m(e,n,{get:t[n],enumerable:!0})},P=(e,t,n,o)=>{if(t&&typeof t=="object"||typeof t=="function")for(let i of f(t))!_.call(e,i)&&i!==n&&m(e,i,{get:()=>t[i],enumerable:!(o=d(t,i))||o.enumerable});return e};var N=e=>P(m({},"__esModule",{value:!0}),e);var h={};M(h,{GPS_SPEED_FILTER_ENABLED:()=>u,MAX_ALLOWED_SPEED_KILOMETERS_PER_HOUR:()=>S,MAX_ALLOWED_SPEED_METERS_PER_SECOND:()=>a,filterGpsSpikes:()=>E,haversine:()=>c,normalizePointTimes:()=>l,prepareTrack:()=>T});var S=200,a=55.55555555555556,u=!0;function c(e,t){let n=Math.PI/180,o=(t.lat-e.lat)*n,i=(t.lon-e.lon)*n,r=Math.sin(o/2)**2+Math.cos(e.lat*n)*Math.cos(t.lat*n)*Math.sin(i/2)**2;return 12742e3*Math.asin(Math.sqrt(r))}function E(e,t=u?a:1/0){let n=[],o=0,i=null;for(let r of e){let s=Number(r.time);if(i&&Number.isFinite(s)&&s>i.time){let p=(s-i.time)/1e3;if(c(i,r)/p>t){o+=1;continue}}n.push(r),Number.isFinite(s)&&(!i||s>i.time)&&(i={...r,time:s})}return{points:n,removedPoints:o}}function l(e){let t=e.findIndex(i=>Number.isFinite(Number(i.time))),o=(t>=0?Number(e[t].time):0)-(t+1)*1e3;return e.map(i=>{let r=Number(i.time),s=Number.isFinite(r)&&r>o?r:o+1e3;return o=s,{...i,time:s}})}function T(e){let t=E(e);if(t.points.length<2)throw new Error("The route needs at least two usable track points after GPS spike filtering.");let n=Number(t.points.find(o=>Number.isFinite(Number(o.time)))?.time);return{points:l(t.points),startTime:Number.isFinite(n)?n:null,rawPointCount:e.length,removedPoints:t.removedPoints}}return N(h);})();
+  <script>var RouteCore=(()=>{var p=Object.defineProperty;var A=Object.getOwnPropertyDescriptor;var I=Object.getOwnPropertyNames;var F=Object.prototype.hasOwnProperty;var O=(t,e)=>{for(var i in e)p(t,i,{get:e[i],enumerable:!0})},v=(t,e,i,o)=>{if(e&&typeof e=="object"||typeof e=="function")for(let n of I(e))!F.call(t,n)&&n!==i&&p(t,n,{get:()=>e[n],enumerable:!(o=A(e,n))||o.enumerable});return t};var w=t=>v(p({},"__esModule",{value:!0}),t);var U={};O(U,{GPS_SPEED_FILTER_ENABLED:()=>y,MAX_ALLOWED_SPEED_KILOMETERS_PER_HOUR:()=>k,MAX_ALLOWED_SPEED_METERS_PER_SECOND:()=>L,filterGpsSpikes:()=>R,haversine:()=>P,normalizePointTimes:()=>D,prepareTrack:()=>q,simplifyRouteIndices:()=>G});var k=200,L=55.55555555555556,y=!0;function P(t,e){let i=Math.PI/180,o=(e.lat-t.lat)*i,n=(e.lon-t.lon)*i,s=Math.sin(o/2)**2+Math.cos(t.lat*i)*Math.cos(e.lat*i)*Math.sin(n/2)**2;return 12742e3*Math.asin(Math.sqrt(s))}function R(t,e=y?L:1/0){let i=[],o=0,n=null;for(let s of t){let a=Number(s.time);if(n&&Number.isFinite(a)&&a>n.time){let d=(a-n.time)/1e3;if(P(n,s)/d>e){o+=1;continue}}i.push(s),Number.isFinite(a)&&(!n||a>n.time)&&(n={...s,time:a})}return{points:i,removedPoints:o}}function D(t){let e=t.findIndex(n=>Number.isFinite(Number(n.time))),o=(e>=0?Number(t[e].time):0)-(e+1)*1e3;return t.map(n=>{let s=Number(n.time),a=Number.isFinite(s)&&s>o?s:o+1e3;return o=a,{...n,time:a}})}function q(t){let e=R(t);if(e.points.length<2)throw new Error("The route needs at least two usable track points after GPS spike filtering.");let i=Number(e.points.find(o=>Number.isFinite(Number(o.time)))?.time);return{points:D(e.points),startTime:Number.isFinite(i)?i:null,rawPointCount:t.length,removedPoints:e.removedPoints}}function G(t,e=.75){if(t.length<3||e<=0)return t.map((r,c)=>c);let i=Math.PI/180,o=6371e3*i,n=o*t.reduce((r,c)=>Math.max(r,Math.cos(c.lat*i)),0),s=t[0].lon,a=t.map((r,c)=>(c&&(s+=(r.lon-t[c-1].lon+540)%360-180),{x:(s-t[0].lon)*n,y:(r.lat-t[0].lat)*o,z:Number.isFinite(r.ele)?r.ele:0})),m=new Uint8Array(t.length);m[0]=m[t.length-1]=1;let d=[[0,t.length-1]],z=e**2;for(;d.length;){let[r,c]=d.pop(),l=a[r],_=a[c],h=_.x-l.x,E=_.y-l.y,x=_.z-l.z,g=h*h+E*E+x*x,f=-1,T=z;for(let M=r+1;M<c;M++){let u=a[M],S=g?Math.max(0,Math.min(1,((u.x-l.x)*h+(u.y-l.y)*E+(u.z-l.z)*x)/g)):0,b=(u.x-l.x-S*h)**2+(u.y-l.y-S*E)**2+(u.z-l.z-S*x)**2;b>T&&(T=b,f=M)}f!==-1&&(m[f]=1,d.push([r,f],[f,c]))}let N=0;for(let r=1;r<t.length;r++)(m[r]||P(t[N],t[r])>=50)&&(m[r]=1,N=r);return t.flatMap((r,c)=>m[c]?[c]:[])}return w(U);})();
 </script>
   <script>var RouteRecorder=(()=>{var De=Object.defineProperty;var Ot=Object.getOwnPropertyDescriptor;var It=Object.getOwnPropertyNames;var Bt=Object.prototype.hasOwnProperty;var xt=(e,t)=>{for(var r in t)De(e,r,{get:t[r],enumerable:!0})},Dt=(e,t,r,s)=>{if(t&&typeof t=="object"||typeof t=="function")for(let a of It(t))!Bt.call(e,a)&&a!==r&&De(e,a,{get:()=>t[a],enumerable:!(s=Ot(t,a))||s.enumerable});return e};var Rt=e=>Dt(De({},"__esModule",{value:!0}),e);var rr={};xt(rr,{calculateRecordingSize:()=>At,createMapRecorder:()=>tr,isRecordingSupported:()=>Mt,recorderFeatures:()=>ir});var $e=(e,t,r)=>{if(!t.has(e))throw TypeError("Cannot "+r)},i=(e,t,r)=>($e(e,t,"read from private field"),r?r.call(e):t.get(e)),u=(e,t,r)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,r)},k=(e,t,r,s)=>($e(e,t,"write to private field"),s?s.call(e,r):t.set(e,r),r),Ut=(e,t,r,s)=>({set _(a){k(e,t,a,r)},get _(){return i(e,t,s)}}),c=(e,t,r)=>($e(e,t,"access private method"),r),m=new Uint8Array(8),L=new DataView(m.buffer),E=e=>[(e%256+256)%256],v=e=>(L.setUint16(0,e,!1),[m[0],m[1]]),Ft=e=>(L.setInt16(0,e,!1),[m[0],m[1]]),ot=e=>(L.setUint32(0,e,!1),[m[1],m[2],m[3]]),h=e=>(L.setUint32(0,e,!1),[m[0],m[1],m[2],m[3]]),Wt=e=>(L.setInt32(0,e,!1),[m[0],m[1],m[2],m[3]]),Q=e=>(L.setUint32(0,Math.floor(e/2**32),!1),L.setUint32(4,e,!1),[m[0],m[1],m[2],m[3],m[4],m[5],m[6],m[7]]),qe=e=>(L.setInt16(0,2**8*e,!1),[m[0],m[1]]),W=e=>(L.setInt32(0,2**16*e,!1),[m[0],m[1],m[2],m[3]]),Re=e=>(L.setInt32(0,2**30*e,!1),[m[0],m[1],m[2],m[3]]),R=(e,t=!1)=>{let r=Array(e.length).fill(null).map((s,a)=>e.charCodeAt(a));return t&&r.push(0),r},be=e=>e&&e[e.length-1],Xe=e=>{let t;for(let r of e)(!t||r.presentationTimestamp>t.presentationTimestamp)&&(t=r);return t},N=(e,t,r=!0)=>{let s=e*t;return r?Math.round(s):s},lt=e=>{let t=e*(Math.PI/180),r=Math.cos(t),s=Math.sin(t);return[r,s,0,-s,r,0,0,0,1]},ht=lt(0),dt=e=>[W(e[0]),W(e[1]),Re(e[2]),W(e[3]),W(e[4]),Re(e[5]),W(e[6]),W(e[7]),Re(e[8])],oe=e=>!e||typeof e!="object"?e:Array.isArray(e)?e.map(oe):Object.fromEntries(Object.entries(e).map(([t,r])=>[t,oe(r)])),te=e=>e>=0&&e<2**32,T=(e,t,r)=>({type:e,contents:t&&new Uint8Array(t.flat(10)),children:r}),y=(e,t,r,s,a)=>T(e,[E(t),ot(r),s??[]],a),Nt=e=>{let t=512;return e.fragmented?T("ftyp",[R("iso5"),h(t),R("iso5"),R("iso6"),R("mp41")]):T("ftyp",[R("isom"),h(t),R("isom"),e.holdsAvc?R("avc1"):[],R("mp41")])},Ue=e=>({type:"mdat",largeSize:e}),Lt=e=>({type:"free",size:e}),ve=(e,t,r=!1)=>T("moov",null,[Vt(t,e),...e.map(s=>Pt(s,t)),r?yi(e):null]),Vt=(e,t)=>{let r=N(Math.max(0,...t.filter(o=>o.samples.length>0).map(o=>{let l=Xe(o.samples);return l.presentationTimestamp+l.duration})),Ne),s=Math.max(...t.map(o=>o.id))+1,a=!te(e)||!te(r),n=a?Q:h;return y("mvhd",+a,0,[n(e),n(e),h(Ne),n(r),W(1),qe(1),Array(10).fill(0),dt(ht),Array(24).fill(0),h(s)])},Pt=(e,t)=>T("trak",null,[Ht(e,t),jt(e,t)]),Ht=(e,t)=>{let r=Xe(e.samples),s=N(r?r.presentationTimestamp+r.duration:0,Ne),a=!te(t)||!te(s),n=a?Q:h,o;return e.info.type==="video"?o=typeof e.info.rotation=="number"?lt(e.info.rotation):e.info.rotation:o=ht,y("tkhd",+a,3,[n(t),n(t),h(e.id),h(0),n(s),Array(8).fill(0),v(0),v(0),qe(e.info.type==="audio"?1:0),v(0),dt(o),W(e.info.type==="video"?e.info.width:0),W(e.info.type==="video"?e.info.height:0)])},jt=(e,t)=>T("mdia",null,[$t(e,t),qt(e.info.type==="video"?"vide":"soun"),Xt(e)]),$t=(e,t)=>{let r=Xe(e.samples),s=N(r?r.presentationTimestamp+r.duration:0,e.timescale),a=!te(t)||!te(s),n=a?Q:h;return y("mdhd",+a,0,[n(t),n(t),h(e.timescale),n(s),v(21956),v(0)])},qt=e=>y("hdlr",0,0,[R("mhlr"),R(e),h(0),h(0),h(0),R("mp4-muxer-hdlr",!0)]),Xt=e=>T("minf",null,[e.info.type==="video"?Gt():Qt(),Kt(),Jt(e)]),Gt=()=>y("vmhd",0,1,[v(0),v(0),v(0),v(0)]),Qt=()=>y("smhd",0,0,[v(0),v(0)]),Kt=()=>T("dinf",null,[Zt()]),Zt=()=>y("dref",0,0,[h(1)],[Yt()]),Yt=()=>y("url ",0,1),Jt=e=>{let t=e.compositionTimeOffsetTable.length>1||e.compositionTimeOffsetTable.some(r=>r.sampleCompositionTimeOffset!==0);return T("stbl",null,[ei(e),ci(e),mi(e),pi(e),wi(e),vi(e),t?gi(e):null])},ei=e=>y("stsd",0,0,[h(1)],[e.info.type==="video"?ti(zi[e.info.codec],e):di(Ii[e.info.codec],e)]),ti=(e,t)=>T(e,[Array(6).fill(0),v(1),v(0),v(0),Array(12).fill(0),v(t.info.width),v(t.info.height),h(4718592),h(4718592),h(0),v(1),Array(32).fill(0),v(24),Ft(65535)],[Oi[t.info.codec](t),t.info.decoderConfig.colorSpace?ai(t):null]),ii={bt709:1,bt470bg:5,smpte170m:6},ri={bt709:1,smpte170m:6,"iec61966-2-1":13},si={rgb:0,bt709:1,bt470bg:5,smpte170m:6},ai=e=>T("colr",[R("nclx"),v(ii[e.info.decoderConfig.colorSpace.primaries]),v(ri[e.info.decoderConfig.colorSpace.transfer]),v(si[e.info.decoderConfig.colorSpace.matrix]),E((e.info.decoderConfig.colorSpace.fullRange?1:0)<<7)]),ni=e=>e.info.decoderConfig&&T("avcC",[...new Uint8Array(e.info.decoderConfig.description)]),oi=e=>e.info.decoderConfig&&T("hvcC",[...new Uint8Array(e.info.decoderConfig.description)]),li=e=>{if(!e.info.decoderConfig)return null;let t=e.info.decoderConfig;if(!t.colorSpace)throw new Error("'colorSpace' is required in the decoder config for VP9.");let r=t.codec.split("."),s=Number(r[1]),a=Number(r[2]),l=(Number(r[3])<<4)+(0<<1)+Number(t.colorSpace.fullRange);return y("vpcC",1,0,[E(s),E(a),E(l),E(2),E(2),E(2),v(0)])},hi=()=>{let r=(1<<7)+1;return T("av1C",[r,0,0,0])},di=(e,t)=>T(e,[Array(6).fill(0),v(1),v(0),v(0),h(0),v(t.info.numberOfChannels),v(16),v(0),v(0),W(t.info.sampleRate)],[Bi[t.info.codec](t)]),fi=e=>{let t=new Uint8Array(e.info.decoderConfig.description);return y("esds",0,0,[h(58753152),E(32+t.byteLength),v(1),E(0),h(75530368),E(18+t.byteLength),E(64),E(21),ot(0),h(130071),h(130071),h(92307584),E(t.byteLength),...t,h(109084800),E(1),E(2)])},ui=e=>{let t=3840,r=0,s=e.info.decoderConfig?.description;if(s){if(s.byteLength<18)throw new TypeError("Invalid decoder description provided for Opus; must be at least 18 bytes long.");let a=ArrayBuffer.isView(s)?new DataView(s.buffer,s.byteOffset,s.byteLength):new DataView(s);t=a.getUint16(10,!0),r=a.getInt16(14,!0)}return T("dOps",[E(0),E(e.info.numberOfChannels),v(t),h(e.info.sampleRate),qe(r),E(0)])},ci=e=>y("stts",0,0,[h(e.timeToSampleTable.length),e.timeToSampleTable.map(t=>[h(t.sampleCount),h(t.sampleDelta)])]),mi=e=>{if(e.samples.every(r=>r.type==="key"))return null;let t=[...e.samples.entries()].filter(([,r])=>r.type==="key");return y("stss",0,0,[h(t.length),t.map(([r])=>h(r+1))])},pi=e=>y("stsc",0,0,[h(e.compactlyCodedChunkTable.length),e.compactlyCodedChunkTable.map(t=>[h(t.firstChunk),h(t.samplesPerChunk),h(1)])]),wi=e=>y("stsz",0,0,[h(0),h(e.samples.length),e.samples.map(t=>h(t.size))]),vi=e=>e.finalizedChunks.length>0&&be(e.finalizedChunks).offset>=2**32?y("co64",0,0,[h(e.finalizedChunks.length),e.finalizedChunks.map(t=>Q(t.offset))]):y("stco",0,0,[h(e.finalizedChunks.length),e.finalizedChunks.map(t=>h(t.offset))]),gi=e=>y("ctts",0,0,[h(e.compositionTimeOffsetTable.length),e.compositionTimeOffsetTable.map(t=>[h(t.sampleCount),h(t.sampleCompositionTimeOffset)])]),yi=e=>T("mvex",null,e.map(Ci)),Ci=e=>y("trex",0,0,[h(e.id),h(1),h(0),h(0),h(0)]),nt=(e,t)=>T("moof",null,[Ti(e),...t.map(bi)]),Ti=e=>y("mfhd",0,0,[h(e)]),ft=e=>{let t=0,r=0,s=0,a=0,n=e.type==="delta";return r|=+n,n?t|=1:t|=2,t<<24|r<<16|s<<8|a},bi=e=>T("traf",null,[Si(e),Ei(e),_i(e)]),Si=e=>{let t=0;t|=8,t|=16,t|=32,t|=131072;let r=e.currentChunk.samples[1]??e.currentChunk.samples[0],s={duration:r.timescaleUnitsToNextSample,size:r.size,flags:ft(r)};return y("tfhd",0,t,[h(e.id),h(s.duration),h(s.size),h(s.flags)])},Ei=e=>y("tfdt",1,0,[Q(N(e.currentChunk.startTimestamp,e.timescale))]),_i=e=>{let t=e.currentChunk.samples.map(S=>S.timescaleUnitsToNextSample),r=e.currentChunk.samples.map(S=>S.size),s=e.currentChunk.samples.map(ft),a=e.currentChunk.samples.map(S=>N(S.presentationTimestamp-S.decodeTimestamp,e.timescale)),n=new Set(t),o=new Set(r),l=new Set(s),p=new Set(a),w=l.size===2&&s[0]!==s[1],g=n.size>1,C=o.size>1,O=!w&&l.size>1,H=p.size>1||[...p].some(S=>S!==0),b=0;return b|=1,b|=4*+w,b|=256*+g,b|=512*+C,b|=1024*+O,b|=2048*+H,y("trun",1,b,[h(e.currentChunk.samples.length),h(e.currentChunk.offset-e.currentChunk.moofOffset||0),w?h(s[0]):[],e.currentChunk.samples.map((S,z)=>[g?h(t[z]):[],C?h(r[z]):[],O?h(s[z]):[],H?Wt(a[z]):[]])])},ki=e=>T("mfra",null,[...e.map(Mi),Ai()]),Mi=(e,t)=>y("tfra",1,0,[h(e.id),h(63),h(e.finalizedChunks.length),e.finalizedChunks.map(s=>[Q(N(s.startTimestamp,e.timescale)),Q(s.moofOffset),h(t+1),h(1),h(1)])]),Ai=()=>y("mfro",0,0,[h(0)]),zi={avc:"avc1",hevc:"hvc1",vp9:"vp09",av1:"av01"},Oi={avc:ni,hevc:oi,vp9:li,av1:hi},Ii={aac:"mp4a",opus:"Opus"},Bi={aac:fi,opus:ui},ar=Symbol("isTarget"),Ae=class{},Ge=class extends Ae{constructor(){super(...arguments),this.buffer=null}},ut=class extends Ae{constructor(e){if(super(),this.options=e,typeof e!="object")throw new TypeError("StreamTarget requires an options object to be passed to its constructor.");if(e.onData){if(typeof e.onData!="function")throw new TypeError("options.onData, when provided, must be a function.");if(e.onData.length<2)throw new TypeError("options.onData, when provided, must be a function that takes in at least two arguments (data and position). Ignoring the position argument, which specifies the byte offset at which the data is to be written, can lead to broken outputs.")}if(e.chunked!==void 0&&typeof e.chunked!="boolean")throw new TypeError("options.chunked, when provided, must be a boolean.");if(e.chunkSize!==void 0&&(!Number.isInteger(e.chunkSize)||e.chunkSize<1024))throw new TypeError("options.chunkSize, when provided, must be an integer and not smaller than 1024.")}},xi=class extends Ae{constructor(e,t){if(super(),this.stream=e,this.options=t,!(e instanceof FileSystemWritableFileStream))throw new TypeError("FileSystemWritableFileStreamTarget requires a FileSystemWritableFileStream instance.");if(t!==void 0&&typeof t!="object")throw new TypeError("FileSystemWritableFileStreamTarget's options, when provided, must be an object.");if(t&&t.chunkSize!==void 0&&(!Number.isInteger(t.chunkSize)||t.chunkSize<=0))throw new TypeError("options.chunkSize, when provided, must be a positive integer")}},j,Y,ct=class{constructor(){this.pos=0,u(this,j,new Uint8Array(8)),u(this,Y,new DataView(i(this,j).buffer)),this.offsets=new WeakMap}seek(e){this.pos=e}writeU32(e){i(this,Y).setUint32(0,e,!1),this.write(i(this,j).subarray(0,4))}writeU64(e){i(this,Y).setUint32(0,Math.floor(e/2**32),!1),i(this,Y).setUint32(4,e,!1),this.write(i(this,j).subarray(0,8))}writeAscii(e){for(let t=0;t<e.length;t++)i(this,Y).setUint8(t%8,e.charCodeAt(t)),t%8===7&&this.write(i(this,j));e.length%8!==0&&this.write(i(this,j).subarray(0,e.length%8))}writeBox(e){if(this.offsets.set(e,this.pos),e.contents&&!e.children)this.writeBoxHeader(e,e.size??e.contents.byteLength+8),this.write(e.contents);else{let t=this.pos;if(this.writeBoxHeader(e,0),e.contents&&this.write(e.contents),e.children)for(let a of e.children)a&&this.writeBox(a);let r=this.pos,s=e.size??r-t;this.seek(t),this.writeBoxHeader(e,s),this.seek(r)}}writeBoxHeader(e,t){this.writeU32(e.largeSize?1:t),this.writeAscii(e.type),e.largeSize&&this.writeU64(t)}measureBoxHeader(e){return 8+(e.largeSize?8:0)}patchBox(e){let t=this.pos;this.seek(this.offsets.get(e)),this.writeBox(e),this.seek(t)}measureBox(e){if(e.contents&&!e.children)return this.measureBoxHeader(e)+e.contents.byteLength;{let t=this.measureBoxHeader(e);if(e.contents&&(t+=e.contents.byteLength),e.children)for(let r of e.children)r&&(t+=this.measureBox(r));return t}}};j=new WeakMap;Y=new WeakMap;var ge,G,ue,ae,ye,Fe,Di=class extends ct{constructor(e){super(),u(this,ye),u(this,ge,void 0),u(this,G,new ArrayBuffer(2**16)),u(this,ue,new Uint8Array(i(this,G))),u(this,ae,0),k(this,ge,e)}write(e){c(this,ye,Fe).call(this,this.pos+e.byteLength),i(this,ue).set(e,this.pos),this.pos+=e.byteLength,k(this,ae,Math.max(i(this,ae),this.pos))}finalize(){c(this,ye,Fe).call(this,this.pos),i(this,ge).buffer=i(this,G).slice(0,Math.max(i(this,ae),this.pos))}};ge=new WeakMap;G=new WeakMap;ue=new WeakMap;ae=new WeakMap;ye=new WeakSet;Fe=function(e){let t=i(this,G).byteLength;for(;t<e;)t*=2;if(t===i(this,G).byteLength)return;let r=new ArrayBuffer(t),s=new Uint8Array(r);s.set(i(this,ue),0),k(this,G,r),k(this,ue,s)};var Ri=2**24,Ui=2,le,$,ne,P,x,Se,We,Qe,mt,Ke,pt,he,Ee,Ze=class extends ct{constructor(e){super(),u(this,Se),u(this,Qe),u(this,Ke),u(this,he),u(this,le,void 0),u(this,$,[]),u(this,ne,void 0),u(this,P,void 0),u(this,x,[]),k(this,le,e),k(this,ne,e.options?.chunked??!1),k(this,P,e.options?.chunkSize??Ri)}write(e){i(this,$).push({data:e.slice(),start:this.pos}),this.pos+=e.byteLength}flush(){if(i(this,$).length===0)return;let e=[],t=[...i(this,$)].sort((r,s)=>r.start-s.start);e.push({start:t[0].start,size:t[0].data.byteLength});for(let r=1;r<t.length;r++){let s=e[e.length-1],a=t[r];a.start<=s.start+s.size?s.size=Math.max(s.size,a.start+a.data.byteLength-s.start):e.push({start:a.start,size:a.data.byteLength})}for(let r of e){r.data=new Uint8Array(r.size);for(let s of i(this,$))r.start<=s.start&&s.start<r.start+r.size&&r.data.set(s.data,s.start-r.start);i(this,ne)?(c(this,Se,We).call(this,r.data,r.start),c(this,he,Ee).call(this)):i(this,le).options.onData?.(r.data,r.start)}i(this,$).length=0}finalize(){i(this,ne)&&c(this,he,Ee).call(this,!0)}};le=new WeakMap;$=new WeakMap;ne=new WeakMap;P=new WeakMap;x=new WeakMap;Se=new WeakSet;We=function(e,t){let r=i(this,x).findIndex(l=>l.start<=t&&t<l.start+i(this,P));r===-1&&(r=c(this,Ke,pt).call(this,t));let s=i(this,x)[r],a=t-s.start,n=e.subarray(0,Math.min(i(this,P)-a,e.byteLength));s.data.set(n,a);let o={start:a,end:a+n.byteLength};if(c(this,Qe,mt).call(this,s,o),s.written[0].start===0&&s.written[0].end===i(this,P)&&(s.shouldFlush=!0),i(this,x).length>Ui){for(let l=0;l<i(this,x).length-1;l++)i(this,x)[l].shouldFlush=!0;c(this,he,Ee).call(this)}n.byteLength<e.byteLength&&c(this,Se,We).call(this,e.subarray(n.byteLength),t+n.byteLength)};Qe=new WeakSet;mt=function(e,t){let r=0,s=e.written.length-1,a=-1;for(;r<=s;){let n=Math.floor(r+(s-r+1)/2);e.written[n].start<=t.start?(r=n+1,a=n):s=n-1}for(e.written.splice(a+1,0,t),(a===-1||e.written[a].end<t.start)&&a++;a<e.written.length-1&&e.written[a].end>=e.written[a+1].start;)e.written[a].end=Math.max(e.written[a].end,e.written[a+1].end),e.written.splice(a+1,1)};Ke=new WeakSet;pt=function(e){let r={start:Math.floor(e/i(this,P))*i(this,P),data:new Uint8Array(i(this,P)),written:[],shouldFlush:!1};return i(this,x).push(r),i(this,x).sort((s,a)=>s.start-a.start),i(this,x).indexOf(r)};he=new WeakSet;Ee=function(e=!1){for(let t=0;t<i(this,x).length;t++){let r=i(this,x)[t];if(!(!r.shouldFlush&&!e)){for(let s of r.written)i(this,le).options.onData?.(r.data.subarray(s.start,s.end),r.start+s.start);i(this,x).splice(t--,1)}}};var Fi=class extends Ze{constructor(e){super(new ut({onData:(t,r)=>e.stream.write({type:"write",data:t,position:r}),chunked:!0,chunkSize:e.options?.chunkSize}))}},Ne=1e3,Wi=["avc","hevc","vp9","av1"],Ni=["aac","opus"],Li=2082844800,Vi=["strict","offset","cross-track-offset"],d,f,_e,B,A,_,J,ee,Ye,q,X,de,Le,wt,Ve,vt,Je,gt,Pe,yt,et,Ct,Ce,He,F,V,tt,Tt,fe,ke,Me,it,ie,ce,Te,je,bt=class{constructor(e){if(u(this,Le),u(this,Ve),u(this,Je),u(this,Pe),u(this,et),u(this,Ce),u(this,F),u(this,tt),u(this,fe),u(this,Me),u(this,ie),u(this,Te),u(this,d,void 0),u(this,f,void 0),u(this,_e,void 0),u(this,B,void 0),u(this,A,null),u(this,_,null),u(this,J,Math.floor(Date.now()/1e3)+Li),u(this,ee,[]),u(this,Ye,1),u(this,q,[]),u(this,X,[]),u(this,de,!1),c(this,Le,wt).call(this,e),e.video=oe(e.video),e.audio=oe(e.audio),e.fastStart=oe(e.fastStart),this.target=e.target,k(this,d,{firstTimestampBehavior:"strict",...e}),e.target instanceof Ge)k(this,f,new Di(e.target));else if(e.target instanceof ut)k(this,f,new Ze(e.target));else if(e.target instanceof xi)k(this,f,new Fi(e.target));else throw new Error(`Invalid target: ${e.target}`);c(this,Pe,yt).call(this),c(this,Ve,vt).call(this)}addVideoChunk(e,t,r,s){if(!(e instanceof EncodedVideoChunk))throw new TypeError("addVideoChunk's first argument (sample) must be of type EncodedVideoChunk.");if(t&&typeof t!="object")throw new TypeError("addVideoChunk's second argument (meta), when provided, must be an object.");if(r!==void 0&&(!Number.isFinite(r)||r<0))throw new TypeError("addVideoChunk's third argument (timestamp), when provided, must be a non-negative real number.");if(s!==void 0&&!Number.isFinite(s))throw new TypeError("addVideoChunk's fourth argument (compositionTimeOffset), when provided, must be a real number.");let a=new Uint8Array(e.byteLength);e.copyTo(a),this.addVideoChunkRaw(a,e.type,r??e.timestamp,e.duration,t,s)}addVideoChunkRaw(e,t,r,s,a,n){if(!(e instanceof Uint8Array))throw new TypeError("addVideoChunkRaw's first argument (data) must be an instance of Uint8Array.");if(t!=="key"&&t!=="delta")throw new TypeError("addVideoChunkRaw's second argument (type) must be either 'key' or 'delta'.");if(!Number.isFinite(r)||r<0)throw new TypeError("addVideoChunkRaw's third argument (timestamp) must be a non-negative real number.");if(!Number.isFinite(s)||s<0)throw new TypeError("addVideoChunkRaw's fourth argument (duration) must be a non-negative real number.");if(a&&typeof a!="object")throw new TypeError("addVideoChunkRaw's fifth argument (meta), when provided, must be an object.");if(n!==void 0&&!Number.isFinite(n))throw new TypeError("addVideoChunkRaw's sixth argument (compositionTimeOffset), when provided, must be a real number.");if(c(this,Te,je).call(this),!i(this,d).video)throw new Error("No video track declared.");if(typeof i(this,d).fastStart=="object"&&i(this,A).samples.length===i(this,d).fastStart.expectedVideoChunks)throw new Error(`Cannot add more video chunks than specified in 'fastStart' (${i(this,d).fastStart.expectedVideoChunks}).`);let o=c(this,Ce,He).call(this,i(this,A),e,t,r,s,a,n);if(i(this,d).fastStart==="fragmented"&&i(this,_)){for(;i(this,X).length>0&&i(this,X)[0].decodeTimestamp<=o.decodeTimestamp;){let l=i(this,X).shift();c(this,F,V).call(this,i(this,_),l)}o.decodeTimestamp<=i(this,_).lastDecodeTimestamp?c(this,F,V).call(this,i(this,A),o):i(this,q).push(o)}else c(this,F,V).call(this,i(this,A),o)}addAudioChunk(e,t,r){if(!(e instanceof EncodedAudioChunk))throw new TypeError("addAudioChunk's first argument (sample) must be of type EncodedAudioChunk.");if(t&&typeof t!="object")throw new TypeError("addAudioChunk's second argument (meta), when provided, must be an object.");if(r!==void 0&&(!Number.isFinite(r)||r<0))throw new TypeError("addAudioChunk's third argument (timestamp), when provided, must be a non-negative real number.");let s=new Uint8Array(e.byteLength);e.copyTo(s),this.addAudioChunkRaw(s,e.type,r??e.timestamp,e.duration,t)}addAudioChunkRaw(e,t,r,s,a){if(!(e instanceof Uint8Array))throw new TypeError("addAudioChunkRaw's first argument (data) must be an instance of Uint8Array.");if(t!=="key"&&t!=="delta")throw new TypeError("addAudioChunkRaw's second argument (type) must be either 'key' or 'delta'.");if(!Number.isFinite(r)||r<0)throw new TypeError("addAudioChunkRaw's third argument (timestamp) must be a non-negative real number.");if(!Number.isFinite(s)||s<0)throw new TypeError("addAudioChunkRaw's fourth argument (duration) must be a non-negative real number.");if(a&&typeof a!="object")throw new TypeError("addAudioChunkRaw's fifth argument (meta), when provided, must be an object.");if(c(this,Te,je).call(this),!i(this,d).audio)throw new Error("No audio track declared.");if(typeof i(this,d).fastStart=="object"&&i(this,_).samples.length===i(this,d).fastStart.expectedAudioChunks)throw new Error(`Cannot add more audio chunks than specified in 'fastStart' (${i(this,d).fastStart.expectedAudioChunks}).`);let n=c(this,Ce,He).call(this,i(this,_),e,t,r,s,a);if(i(this,d).fastStart==="fragmented"&&i(this,A)){for(;i(this,q).length>0&&i(this,q)[0].decodeTimestamp<=n.decodeTimestamp;){let o=i(this,q).shift();c(this,F,V).call(this,i(this,A),o)}n.decodeTimestamp<=i(this,A).lastDecodeTimestamp?c(this,F,V).call(this,i(this,_),n):i(this,X).push(n)}else c(this,F,V).call(this,i(this,_),n)}finalize(){if(i(this,de))throw new Error("Cannot finalize a muxer more than once.");if(i(this,d).fastStart==="fragmented"){for(let t of i(this,q))c(this,F,V).call(this,i(this,A),t);for(let t of i(this,X))c(this,F,V).call(this,i(this,_),t);c(this,Me,it).call(this,!1)}else i(this,A)&&c(this,fe,ke).call(this,i(this,A)),i(this,_)&&c(this,fe,ke).call(this,i(this,_));let e=[i(this,A),i(this,_)].filter(Boolean);if(i(this,d).fastStart==="in-memory"){let t;for(let s=0;s<2;s++){let a=ve(e,i(this,J)),n=i(this,f).measureBox(a);t=i(this,f).measureBox(i(this,B));let o=i(this,f).pos+n+t;for(let l of i(this,ee)){l.offset=o;for(let{data:p}of l.samples)o+=p.byteLength,t+=p.byteLength}if(o<2**32)break;t>=2**32&&(i(this,B).largeSize=!0)}let r=ve(e,i(this,J));i(this,f).writeBox(r),i(this,B).size=t,i(this,f).writeBox(i(this,B));for(let s of i(this,ee))for(let a of s.samples)i(this,f).write(a.data),a.data=null}else if(i(this,d).fastStart==="fragmented"){let t=i(this,f).pos,r=ki(e);i(this,f).writeBox(r);let s=i(this,f).pos-t;i(this,f).seek(i(this,f).pos-4),i(this,f).writeU32(s)}else{let t=i(this,f).offsets.get(i(this,B)),r=i(this,f).pos-t;i(this,B).size=r,i(this,B).largeSize=r>=2**32,i(this,f).patchBox(i(this,B));let s=ve(e,i(this,J));if(typeof i(this,d).fastStart=="object"){i(this,f).seek(i(this,_e)),i(this,f).writeBox(s);let a=t-i(this,f).pos;i(this,f).writeBox(Lt(a))}else i(this,f).writeBox(s)}c(this,ie,ce).call(this),i(this,f).finalize(),k(this,de,!0)}};d=new WeakMap;f=new WeakMap;_e=new WeakMap;B=new WeakMap;A=new WeakMap;_=new WeakMap;J=new WeakMap;ee=new WeakMap;Ye=new WeakMap;q=new WeakMap;X=new WeakMap;de=new WeakMap;Le=new WeakSet;wt=function(e){if(typeof e!="object")throw new TypeError("The muxer requires an options object to be passed to its constructor.");if(!(e.target instanceof Ae))throw new TypeError("The target must be provided and an instance of Target.");if(e.video){if(!Wi.includes(e.video.codec))throw new TypeError(`Unsupported video codec: ${e.video.codec}`);if(!Number.isInteger(e.video.width)||e.video.width<=0)throw new TypeError(`Invalid video width: ${e.video.width}. Must be a positive integer.`);if(!Number.isInteger(e.video.height)||e.video.height<=0)throw new TypeError(`Invalid video height: ${e.video.height}. Must be a positive integer.`);let t=e.video.rotation;if(typeof t=="number"&&![0,90,180,270].includes(t))throw new TypeError(`Invalid video rotation: ${t}. Has to be 0, 90, 180 or 270.`);if(Array.isArray(t)&&(t.length!==9||t.some(r=>typeof r!="number")))throw new TypeError(`Invalid video transformation matrix: ${t.join()}`);if(e.video.frameRate!==void 0&&(!Number.isInteger(e.video.frameRate)||e.video.frameRate<=0))throw new TypeError(`Invalid video frame rate: ${e.video.frameRate}. Must be a positive integer.`)}if(e.audio){if(!Ni.includes(e.audio.codec))throw new TypeError(`Unsupported audio codec: ${e.audio.codec}`);if(!Number.isInteger(e.audio.numberOfChannels)||e.audio.numberOfChannels<=0)throw new TypeError(`Invalid number of audio channels: ${e.audio.numberOfChannels}. Must be a positive integer.`);if(!Number.isInteger(e.audio.sampleRate)||e.audio.sampleRate<=0)throw new TypeError(`Invalid audio sample rate: ${e.audio.sampleRate}. Must be a positive integer.`)}if(e.firstTimestampBehavior&&!Vi.includes(e.firstTimestampBehavior))throw new TypeError(`Invalid first timestamp behavior: ${e.firstTimestampBehavior}`);if(typeof e.fastStart=="object"){if(e.video){if(e.fastStart.expectedVideoChunks===void 0)throw new TypeError("'fastStart' is an object but is missing property 'expectedVideoChunks'.");if(!Number.isInteger(e.fastStart.expectedVideoChunks)||e.fastStart.expectedVideoChunks<0)throw new TypeError("'expectedVideoChunks' must be a non-negative integer.")}if(e.audio){if(e.fastStart.expectedAudioChunks===void 0)throw new TypeError("'fastStart' is an object but is missing property 'expectedAudioChunks'.");if(!Number.isInteger(e.fastStart.expectedAudioChunks)||e.fastStart.expectedAudioChunks<0)throw new TypeError("'expectedAudioChunks' must be a non-negative integer.")}}else if(![!1,"in-memory","fragmented"].includes(e.fastStart))throw new TypeError("'fastStart' option must be false, 'in-memory', 'fragmented' or an object.");if(e.minFragmentDuration!==void 0&&(!Number.isFinite(e.minFragmentDuration)||e.minFragmentDuration<0))throw new TypeError("'minFragmentDuration' must be a non-negative number.")};Ve=new WeakSet;vt=function(){if(i(this,f).writeBox(Nt({holdsAvc:i(this,d).video?.codec==="avc",fragmented:i(this,d).fastStart==="fragmented"})),k(this,_e,i(this,f).pos),i(this,d).fastStart==="in-memory")k(this,B,Ue(!1));else if(i(this,d).fastStart!=="fragmented"){if(typeof i(this,d).fastStart=="object"){let e=c(this,Je,gt).call(this);i(this,f).seek(i(this,f).pos+e)}k(this,B,Ue(!0)),i(this,f).writeBox(i(this,B))}c(this,ie,ce).call(this)};Je=new WeakSet;gt=function(){if(typeof i(this,d).fastStart!="object")return;let e=0,t=[i(this,d).fastStart.expectedVideoChunks,i(this,d).fastStart.expectedAudioChunks];for(let r of t)r&&(e+=8*Math.ceil(2/3*r),e+=4*r,e+=12*Math.ceil(2/3*r),e+=4*r,e+=8*r);return e+=4096,e};Pe=new WeakSet;yt=function(){if(i(this,d).video&&k(this,A,{id:1,info:{type:"video",codec:i(this,d).video.codec,width:i(this,d).video.width,height:i(this,d).video.height,rotation:i(this,d).video.rotation??0,decoderConfig:null},timescale:i(this,d).video.frameRate??57600,samples:[],finalizedChunks:[],currentChunk:null,firstDecodeTimestamp:void 0,lastDecodeTimestamp:-1,timeToSampleTable:[],compositionTimeOffsetTable:[],lastTimescaleUnits:null,lastSample:null,compactlyCodedChunkTable:[]}),i(this,d).audio&&(k(this,_,{id:i(this,d).video?2:1,info:{type:"audio",codec:i(this,d).audio.codec,numberOfChannels:i(this,d).audio.numberOfChannels,sampleRate:i(this,d).audio.sampleRate,decoderConfig:null},timescale:i(this,d).audio.sampleRate,samples:[],finalizedChunks:[],currentChunk:null,firstDecodeTimestamp:void 0,lastDecodeTimestamp:-1,timeToSampleTable:[],compositionTimeOffsetTable:[],lastTimescaleUnits:null,lastSample:null,compactlyCodedChunkTable:[]}),i(this,d).audio.codec==="aac")){let e=c(this,et,Ct).call(this,2,i(this,d).audio.sampleRate,i(this,d).audio.numberOfChannels);i(this,_).info.decoderConfig={codec:i(this,d).audio.codec,description:e,numberOfChannels:i(this,d).audio.numberOfChannels,sampleRate:i(this,d).audio.sampleRate}}};et=new WeakSet;Ct=function(e,t,r){let a=[96e3,88200,64e3,48e3,44100,32e3,24e3,22050,16e3,12e3,11025,8e3,7350].indexOf(t),n=r,o="";o+=e.toString(2).padStart(5,"0"),o+=a.toString(2).padStart(4,"0"),a===15&&(o+=t.toString(2).padStart(24,"0")),o+=n.toString(2).padStart(4,"0");let l=Math.ceil(o.length/8)*8;o=o.padEnd(l,"0");let p=new Uint8Array(o.length/8);for(let w=0;w<o.length;w+=8)p[w/8]=parseInt(o.slice(w,w+8),2);return p};Ce=new WeakSet;He=function(e,t,r,s,a,n,o){let l=s/1e6,p=(s-(o??0))/1e6,w=a/1e6,g=c(this,tt,Tt).call(this,l,p,e);return l=g.presentationTimestamp,p=g.decodeTimestamp,n?.decoderConfig&&(e.info.decoderConfig===null?e.info.decoderConfig=n.decoderConfig:Object.assign(e.info.decoderConfig,n.decoderConfig)),{presentationTimestamp:l,decodeTimestamp:p,duration:w,data:t,size:t.byteLength,type:r,timescaleUnitsToNextSample:N(w,e.timescale)}};F=new WeakSet;V=function(e,t){i(this,d).fastStart!=="fragmented"&&e.samples.push(t);let r=N(t.presentationTimestamp-t.decodeTimestamp,e.timescale);if(e.lastTimescaleUnits!==null){let a=N(t.decodeTimestamp,e.timescale,!1),n=Math.round(a-e.lastTimescaleUnits);if(e.lastTimescaleUnits+=n,e.lastSample.timescaleUnitsToNextSample=n,i(this,d).fastStart!=="fragmented"){let o=be(e.timeToSampleTable);o.sampleCount===1?(o.sampleDelta=n,o.sampleCount++):o.sampleDelta===n?o.sampleCount++:(o.sampleCount--,e.timeToSampleTable.push({sampleCount:2,sampleDelta:n}));let l=be(e.compositionTimeOffsetTable);l.sampleCompositionTimeOffset===r?l.sampleCount++:e.compositionTimeOffsetTable.push({sampleCount:1,sampleCompositionTimeOffset:r})}}else e.lastTimescaleUnits=0,i(this,d).fastStart!=="fragmented"&&(e.timeToSampleTable.push({sampleCount:1,sampleDelta:N(t.duration,e.timescale)}),e.compositionTimeOffsetTable.push({sampleCount:1,sampleCompositionTimeOffset:r}));e.lastSample=t;let s=!1;if(!e.currentChunk)s=!0;else{let a=t.presentationTimestamp-e.currentChunk.startTimestamp;if(i(this,d).fastStart==="fragmented"){let n=i(this,A)??i(this,_),o=i(this,d).minFragmentDuration??1;e===n&&t.type==="key"&&a>=o&&(s=!0,c(this,Me,it).call(this))}else s=a>=.5}s&&(e.currentChunk&&c(this,fe,ke).call(this,e),e.currentChunk={startTimestamp:t.presentationTimestamp,samples:[]}),e.currentChunk.samples.push(t)};tt=new WeakSet;Tt=function(e,t,r){let s=i(this,d).firstTimestampBehavior==="strict",a=r.lastDecodeTimestamp===-1;if(s&&a&&t!==0)throw new Error(`The first chunk for your media track must have a timestamp of 0 (received DTS=${t}).Non-zero first timestamps are often caused by directly piping frames or audio data from a MediaStreamTrack into the encoder. Their timestamps are typically relative to the age of thedocument, which is probably what you want.
 
@@ -1195,7 +1195,8 @@ If you want to offset all timestamps of a track such that the first one is zero,
     const mapTilerKey = '';
     const hasMapTilerKey = mapTilerKey && !mapTilerKey.startsWith('__');
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const { haversine, prepareTrack, MAX_ALLOWED_SPEED_KILOMETERS_PER_HOUR, GPS_SPEED_FILTER_ENABLED } = RouteCore;
+    const { haversine, prepareTrack, simplifyRouteIndices, MAX_ALLOWED_SPEED_KILOMETERS_PER_HOUR, GPS_SPEED_FILTER_ENABLED } = RouteCore;
+    const renderPixelRatio = Math.min(devicePixelRatio || 1, 2);
     const emptyFeatureCollection = () => ({ type: 'FeatureCollection', features: [] });
     const mapStyle = hasMapTilerKey
       ? 'https://api.maptiler.com/maps/streets-v2/style.json'
@@ -1218,7 +1219,10 @@ If you want to offset all timestamps of a track such that the first one is zero,
       pitch: 0,
       maxPitch: 65,
       attributionControl: true,
-      fadeDuration: 0,
+      // Zero forces a full symbol collision placement every frame in MapLibre.
+      // A short fade keeps placement incremental; recordings still wait for idle.
+      fadeDuration: 100,
+      pixelRatio: renderPixelRatio,
       canvasContextAttributes: { antialias: true, preserveDrawingBuffer: true },
       transformRequest(url) {
         if (!hasMapTilerKey) return { url };
@@ -1279,7 +1283,13 @@ If you want to offset all timestamps of a track such that the first one is zero,
     let followBearing = 0;
     let speed = Number(ui.speed.value);
     let completedRoute = [];
+    let completedRouteIndex = -1;
+    let routeSourceIndex = -1;
+    let lastStatsUpdate = 0;
     let overlayVisible = false;
+    let overlayMatrix = null;
+    let terrainRevision = 0;
+    const projectedRouteVertices = new WeakMap();
     let view3dEnabled = false;
     const replayDuration = 50;
     const routeStore = { database: 'gpx-route-replay', store: 'routes', key: 'current' };
@@ -1366,7 +1376,7 @@ If you want to offset all timestamps of a track such that the first one is zero,
       if (!view3dEnabled && !overlayVisible) return;
       const width = routeOverlay.clientWidth;
       const height = routeOverlay.clientHeight;
-      const scale = devicePixelRatio || 1;
+      const scale = renderPixelRatio;
       if (routeOverlay.width !== Math.round(width * scale) || routeOverlay.height !== Math.round(height * scale)) {
         routeOverlay.width = Math.round(width * scale);
         routeOverlay.height = Math.round(height * scale);
@@ -1380,8 +1390,40 @@ If you want to offset all timestamps of a track such that the first one is zero,
       context.beginPath();
       const maxJump = Math.hypot(width, height);
       let previous = null;
-      for (const point of completedRoute) {
-        const projected = map.project([point.lon, point.lat]);
+      let tip;
+      let terrainQueries = recorder ? Infinity : 8;
+      let pendingTerrain = false;
+      const centerLongitude = map.getCenter().lng;
+      for (let index = 0; index < completedRoute.length; index++) {
+        const point = completedRoute[index];
+        let projected;
+        if (index === completedRoute.length - 1 || !overlayMatrix) {
+          // The live tip always uses the latest terrain height, even while tiles load.
+          projected = map.project([point.lon, point.lat]);
+          tip = projected;
+        } else {
+          let vertex = projectedRouteVertices.get(point);
+          if (!vertex) {
+            vertex = { coordinate: maplibregl.MercatorCoordinate.fromLngLat([point.lon, point.lat]), revision: -1 };
+            projectedRouteVertices.set(point, vertex);
+          }
+          if (vertex.revision !== terrainRevision) {
+            if (terrainQueries > 0) {
+              const elevation = map.queryTerrainElevation([point.lon, point.lat]) ?? 0;
+              vertex.coordinate.z = elevation * vertex.coordinate.meterInMercatorCoordinateUnits();
+              vertex.revision = terrainRevision;
+              terrainQueries--;
+            } else pendingTerrain = true;
+          }
+          const { y, z } = vertex.coordinate;
+          const x = vertex.coordinate.x + Math.round((centerLongitude - point.lon) / 360);
+          const matrix = overlayMatrix;
+          const w = matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15];
+          projected = w > 0 ? {
+            x: (1 + (matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12]) / w) * width / 2,
+            y: (1 - (matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13]) / w) * height / 2
+          } : { x: NaN, y: NaN };
+        }
         if (!usableProjection(projected, width, height)) {
           previous = null;
           continue;
@@ -1396,7 +1438,8 @@ If you want to offset all timestamps of a track such that the first one is zero,
       context.lineWidth = 6;
       context.stroke();
 
-      const tip = map.project([completedRoute.at(-1).lon, completedRoute.at(-1).lat]);
+      // Finish terrain refreshes over several frames instead of blocking one frame.
+      if (pendingTerrain && !playing) map.triggerRepaint();
       if (!usableProjection(tip, width, height)) return;
       context.beginPath();
       context.arc(tip.x, tip.y, 8, 0, Math.PI * 2);
@@ -1451,6 +1494,19 @@ If you want to offset all timestamps of a track such that the first one is zero,
       map.addLayer({ id: 'runner-dot', type: 'circle', source: 'runner', paint: {
         'circle-radius': 8, 'circle-color': '#c9ff45', 'circle-stroke-width': 3, 'circle-stroke-color': '#10150f'
       }});
+      // Read the public custom-layer projection matrix once per map frame. Fixed
+      // route vertices then need only matrix arithmetic, rather than map.project()
+      // repeatedly sampling terrain for the entire completed track.
+      addRouteProjectionLayer();
+    }
+
+    function addRouteProjectionLayer() {
+      if (!map.getLayer('route-projection')) {
+        map.addLayer({
+          id: 'route-projection', type: 'custom', renderingMode: '3d',
+          render(gl, args) { overlayMatrix = args.defaultProjectionData.mainMatrix; }
+        });
+      }
     }
 
     let fallbackMapActive = false;
@@ -1842,8 +1898,10 @@ If you want to offset all timestamps of a track such that the first one is zero,
         else map.easeTo({ ...camera, duration: 700, essential: false });
       };
       map.setTerrain(enabled ? { source: 'terrain-dem', exaggeration: 1 } : null);
+      terrainRevision++;
       moveCamera();
-      if (points.length) render(progress);
+      routeSourceIndex = -1;
+      if (points.length) render(progress, undefined, true);
       setStatus(enabled ? 'terrain3dOn' : 'terrain2dOn');
     }
 
@@ -1969,12 +2027,14 @@ If you want to offset all timestamps of a track such that the first one is zero,
       progress = 0;
       lastFrame = 0;
       completedRoute = [];
+      completedRouteIndex = -1;
+      routeSourceIndex = -1;
       mileageMarkers.forEach(({ marker }) => marker.remove());
       endpointMarkers.forEach((marker) => marker.remove());
       mileageMarkers = [];
       endpointMarkers = [];
       points = track.points;
-      displayPoints = points;
+      displayPoints = simplifyRouteIndices(points).map((sourceIndex) => ({ ...points[sourceIndex], sourceIndex }));
       ui.title.textContent = cleanFileName(fileName);
       document.title = `${ui.title.textContent} — ${t('docTitleSuffix')}`;
       totalDuration = Math.max(1, (points.at(-1).time - points[0].time) / 1000);
@@ -2068,7 +2128,7 @@ If you want to offset all timestamps of a track such that the first one is zero,
 
     function updateFollowCamera(current, elapsedMs = 1000 / recordingFps) {
       if (!ui.followToggle.checked) return;
-      followBearing = blendBearing(followBearing, current.bearing, 1 - Math.exp(-elapsedMs / 100));
+      followBearing = blendBearing(followBearing, current.bearing, 1 - Math.exp(-elapsedMs / 250));
       const camera = {
         center: [current.lon, current.lat],
         bearing: view3dEnabled ? followBearing : 0,
@@ -2078,21 +2138,45 @@ If you want to offset all timestamps of a track such that the first one is zero,
       map.jumpTo(camera);
     }
 
-    function render(nextProgress, elapsedMs) {
+    function render(nextProgress, elapsedMs, forceRouteUpdate = false) {
       progress = clamp(nextProgress, 0, 1);
       const current = pointAt(progress);
-      const completed = displayPoints.slice(0, current.index + 1);
-      completed.push(current);
-      completedRoute = completed;
-      // The 3D overlay is drawn synchronously; avoid two unused worker updates per frame.
+      let low = 0;
+      let high = displayPoints.length - 1;
+      while (low < high) {
+        const middle = Math.ceil((low + high) / 2);
+        if (displayPoints[middle].sourceIndex <= current.index) low = middle;
+        else high = middle - 1;
+      }
+      // Keep retained GPS vertices intact and replace only the interpolated tip.
+      if (completedRoute.length) completedRoute.pop();
+      if (low < completedRouteIndex) {
+        completedRoute.length = low + 1;
+        completedRouteIndex = low;
+      } else {
+        while (completedRouteIndex < low) {
+          completedRoute.push(displayPoints[++completedRouteIndex]);
+        }
+      }
+      completedRoute.push(current);
+      // GeoJSONSource.setData() sends the full line to a worker. Update it only when a
+      // recorded route point advances; the runner itself still moves every animation frame.
       if (!view3dEnabled) {
-        map.getSource('route-complete').setData(lineFeature(completedRoute));
+        if (forceRouteUpdate || current.index !== routeSourceIndex) {
+          map.getSource('route-complete').setData(lineFeature(completedRoute));
+          routeSourceIndex = current.index;
+        }
         map.getSource('runner').setData({
           type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [current.lon, current.lat] }
         });
       }
-      map.triggerRepaint();
       ui.progress.value = Math.round(progress * 1000);
+      updateFollowCamera(current, elapsedMs);
+      // In 3D with follow disabled, no GeoJSON source or moving camera requests a frame.
+      if (view3dEnabled && !ui.followToggle.checked) map.triggerRepaint();
+      const now = performance.now();
+      if (playing && !forceRouteUpdate && now - lastStatsUpdate < 100 && progress < 1) return;
+      lastStatsUpdate = now;
       const currentDistance = `${(current.distance / 1000).toFixed(2)} km`;
       const elapsedTime = formatTime(progress * totalDuration);
       ui.distance.textContent = ui.compactDistance.textContent = currentDistance;
@@ -2102,7 +2186,6 @@ If you want to offset all timestamps of a track such that the first one is zero,
       ui.elevation.textContent = Number.isFinite(current.ele) ? `${Math.round(current.ele)} m` : '—';
       ui.heartRate.textContent = Number.isFinite(current.hr) ? `${current.hr} bpm` : '—';
       updateMileageMarkers(current.distance);
-      updateFollowCamera(current, elapsedMs);
     }
 
     async function captureRecordingFrame(signal) {
@@ -2241,7 +2324,7 @@ If you want to offset all timestamps of a track such that the first one is zero,
       if (!playing) togglePlayback();
     });
     ui.progress.addEventListener('input', (event) => {
-      if (points.length) render(Number(event.target.value) / 1000);
+      if (points.length) render(Number(event.target.value) / 1000, undefined, true);
     });
     ui.speed.addEventListener('change', () => {
       speed = Number(ui.speed.value);
@@ -2264,6 +2347,17 @@ If you want to offset all timestamps of a track such that the first one is zero,
     });
     map.on('render', drawRouteOverlay);
     map.on('resize', drawRouteOverlay);
+    map.on('sourcedata', (event) => {
+      if (event.sourceId === 'terrain-dem' && event.isSourceLoaded) terrainRevision++;
+    });
+    map.on('webglcontextlost', () => { overlayMatrix = null; });
+    map.on('webglcontextrestored', () => {
+      map.once('idle', () => {
+        terrainRevision++;
+        addRouteProjectionLayer();
+        map.triggerRepaint();
+      });
+    });
     ui.dashboardCollapse.addEventListener('click', () => setDashboardCollapsed(true));
     ui.dashboardExpand.addEventListener('click', () => setDashboardCollapsed(false));
 

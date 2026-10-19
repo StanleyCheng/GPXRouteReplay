@@ -1189,7 +1189,8 @@
     const mapTilerKey = '__MAPTILER_KEY__';
     const hasMapTilerKey = mapTilerKey && !mapTilerKey.startsWith('__');
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const { haversine, prepareTrack, MAX_ALLOWED_SPEED_KILOMETERS_PER_HOUR, GPS_SPEED_FILTER_ENABLED } = RouteCore;
+    const { haversine, prepareTrack, simplifyRouteIndices, MAX_ALLOWED_SPEED_KILOMETERS_PER_HOUR, GPS_SPEED_FILTER_ENABLED } = RouteCore;
+    const renderPixelRatio = Math.min(devicePixelRatio || 1, 2);
     const emptyFeatureCollection = () => ({ type: 'FeatureCollection', features: [] });
     const mapStyle = hasMapTilerKey
       ? 'https://api.maptiler.com/maps/streets-v2/style.json'
@@ -1212,7 +1213,10 @@
       pitch: 0,
       maxPitch: 65,
       attributionControl: true,
-      fadeDuration: 0,
+      // Zero forces a full symbol collision placement every frame in MapLibre.
+      // A short fade keeps placement incremental; recordings still wait for idle.
+      fadeDuration: 100,
+      pixelRatio: renderPixelRatio,
       canvasContextAttributes: { antialias: true, preserveDrawingBuffer: true },
       transformRequest(url) {
         if (!hasMapTilerKey) return { url };
@@ -1273,7 +1277,13 @@
     let followBearing = 0;
     let speed = Number(ui.speed.value);
     let completedRoute = [];
+    let completedRouteIndex = -1;
+    let routeSourceIndex = -1;
+    let lastStatsUpdate = 0;
     let overlayVisible = false;
+    let overlayMatrix = null;
+    let terrainRevision = 0;
+    const projectedRouteVertices = new WeakMap();
     let view3dEnabled = false;
     const replayDuration = 50;
     const routeStore = { database: 'gpx-route-replay', store: 'routes', key: 'current' };
@@ -1360,7 +1370,7 @@
       if (!view3dEnabled && !overlayVisible) return;
       const width = routeOverlay.clientWidth;
       const height = routeOverlay.clientHeight;
-      const scale = devicePixelRatio || 1;
+      const scale = renderPixelRatio;
       if (routeOverlay.width !== Math.round(width * scale) || routeOverlay.height !== Math.round(height * scale)) {
         routeOverlay.width = Math.round(width * scale);
         routeOverlay.height = Math.round(height * scale);
@@ -1374,8 +1384,40 @@
       context.beginPath();
       const maxJump = Math.hypot(width, height);
       let previous = null;
-      for (const point of completedRoute) {
-        const projected = map.project([point.lon, point.lat]);
+      let tip;
+      let terrainQueries = recorder ? Infinity : 8;
+      let pendingTerrain = false;
+      const centerLongitude = map.getCenter().lng;
+      for (let index = 0; index < completedRoute.length; index++) {
+        const point = completedRoute[index];
+        let projected;
+        if (index === completedRoute.length - 1 || !overlayMatrix) {
+          // The live tip always uses the latest terrain height, even while tiles load.
+          projected = map.project([point.lon, point.lat]);
+          tip = projected;
+        } else {
+          let vertex = projectedRouteVertices.get(point);
+          if (!vertex) {
+            vertex = { coordinate: maplibregl.MercatorCoordinate.fromLngLat([point.lon, point.lat]), revision: -1 };
+            projectedRouteVertices.set(point, vertex);
+          }
+          if (vertex.revision !== terrainRevision) {
+            if (terrainQueries > 0) {
+              const elevation = map.queryTerrainElevation([point.lon, point.lat]) ?? 0;
+              vertex.coordinate.z = elevation * vertex.coordinate.meterInMercatorCoordinateUnits();
+              vertex.revision = terrainRevision;
+              terrainQueries--;
+            } else pendingTerrain = true;
+          }
+          const { y, z } = vertex.coordinate;
+          const x = vertex.coordinate.x + Math.round((centerLongitude - point.lon) / 360);
+          const matrix = overlayMatrix;
+          const w = matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15];
+          projected = w > 0 ? {
+            x: (1 + (matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12]) / w) * width / 2,
+            y: (1 - (matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13]) / w) * height / 2
+          } : { x: NaN, y: NaN };
+        }
         if (!usableProjection(projected, width, height)) {
           previous = null;
           continue;
@@ -1390,7 +1432,8 @@
       context.lineWidth = 6;
       context.stroke();
 
-      const tip = map.project([completedRoute.at(-1).lon, completedRoute.at(-1).lat]);
+      // Finish terrain refreshes over several frames instead of blocking one frame.
+      if (pendingTerrain && !playing) map.triggerRepaint();
       if (!usableProjection(tip, width, height)) return;
       context.beginPath();
       context.arc(tip.x, tip.y, 8, 0, Math.PI * 2);
@@ -1445,6 +1488,19 @@
       map.addLayer({ id: 'runner-dot', type: 'circle', source: 'runner', paint: {
         'circle-radius': 8, 'circle-color': '#c9ff45', 'circle-stroke-width': 3, 'circle-stroke-color': '#10150f'
       }});
+      // Read the public custom-layer projection matrix once per map frame. Fixed
+      // route vertices then need only matrix arithmetic, rather than map.project()
+      // repeatedly sampling terrain for the entire completed track.
+      addRouteProjectionLayer();
+    }
+
+    function addRouteProjectionLayer() {
+      if (!map.getLayer('route-projection')) {
+        map.addLayer({
+          id: 'route-projection', type: 'custom', renderingMode: '3d',
+          render(gl, args) { overlayMatrix = args.defaultProjectionData.mainMatrix; }
+        });
+      }
     }
 
     let fallbackMapActive = false;
@@ -1836,8 +1892,10 @@
         else map.easeTo({ ...camera, duration: 700, essential: false });
       };
       map.setTerrain(enabled ? { source: 'terrain-dem', exaggeration: 1 } : null);
+      terrainRevision++;
       moveCamera();
-      if (points.length) render(progress);
+      routeSourceIndex = -1;
+      if (points.length) render(progress, undefined, true);
       setStatus(enabled ? 'terrain3dOn' : 'terrain2dOn');
     }
 
@@ -1963,12 +2021,14 @@
       progress = 0;
       lastFrame = 0;
       completedRoute = [];
+      completedRouteIndex = -1;
+      routeSourceIndex = -1;
       mileageMarkers.forEach(({ marker }) => marker.remove());
       endpointMarkers.forEach((marker) => marker.remove());
       mileageMarkers = [];
       endpointMarkers = [];
       points = track.points;
-      displayPoints = points;
+      displayPoints = simplifyRouteIndices(points).map((sourceIndex) => ({ ...points[sourceIndex], sourceIndex }));
       ui.title.textContent = cleanFileName(fileName);
       document.title = `${ui.title.textContent} — ${t('docTitleSuffix')}`;
       totalDuration = Math.max(1, (points.at(-1).time - points[0].time) / 1000);
@@ -2062,7 +2122,7 @@
 
     function updateFollowCamera(current, elapsedMs = 1000 / recordingFps) {
       if (!ui.followToggle.checked) return;
-      followBearing = blendBearing(followBearing, current.bearing, 1 - Math.exp(-elapsedMs / 100));
+      followBearing = blendBearing(followBearing, current.bearing, 1 - Math.exp(-elapsedMs / 250));
       const camera = {
         center: [current.lon, current.lat],
         bearing: view3dEnabled ? followBearing : 0,
@@ -2072,21 +2132,45 @@
       map.jumpTo(camera);
     }
 
-    function render(nextProgress, elapsedMs) {
+    function render(nextProgress, elapsedMs, forceRouteUpdate = false) {
       progress = clamp(nextProgress, 0, 1);
       const current = pointAt(progress);
-      const completed = displayPoints.slice(0, current.index + 1);
-      completed.push(current);
-      completedRoute = completed;
-      // The 3D overlay is drawn synchronously; avoid two unused worker updates per frame.
+      let low = 0;
+      let high = displayPoints.length - 1;
+      while (low < high) {
+        const middle = Math.ceil((low + high) / 2);
+        if (displayPoints[middle].sourceIndex <= current.index) low = middle;
+        else high = middle - 1;
+      }
+      // Keep retained GPS vertices intact and replace only the interpolated tip.
+      if (completedRoute.length) completedRoute.pop();
+      if (low < completedRouteIndex) {
+        completedRoute.length = low + 1;
+        completedRouteIndex = low;
+      } else {
+        while (completedRouteIndex < low) {
+          completedRoute.push(displayPoints[++completedRouteIndex]);
+        }
+      }
+      completedRoute.push(current);
+      // GeoJSONSource.setData() sends the full line to a worker. Update it only when a
+      // recorded route point advances; the runner itself still moves every animation frame.
       if (!view3dEnabled) {
-        map.getSource('route-complete').setData(lineFeature(completedRoute));
+        if (forceRouteUpdate || current.index !== routeSourceIndex) {
+          map.getSource('route-complete').setData(lineFeature(completedRoute));
+          routeSourceIndex = current.index;
+        }
         map.getSource('runner').setData({
           type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [current.lon, current.lat] }
         });
       }
-      map.triggerRepaint();
       ui.progress.value = Math.round(progress * 1000);
+      updateFollowCamera(current, elapsedMs);
+      // In 3D with follow disabled, no GeoJSON source or moving camera requests a frame.
+      if (view3dEnabled && !ui.followToggle.checked) map.triggerRepaint();
+      const now = performance.now();
+      if (playing && !forceRouteUpdate && now - lastStatsUpdate < 100 && progress < 1) return;
+      lastStatsUpdate = now;
       const currentDistance = `${(current.distance / 1000).toFixed(2)} km`;
       const elapsedTime = formatTime(progress * totalDuration);
       ui.distance.textContent = ui.compactDistance.textContent = currentDistance;
@@ -2096,7 +2180,6 @@
       ui.elevation.textContent = Number.isFinite(current.ele) ? `${Math.round(current.ele)} m` : '—';
       ui.heartRate.textContent = Number.isFinite(current.hr) ? `${current.hr} bpm` : '—';
       updateMileageMarkers(current.distance);
-      updateFollowCamera(current, elapsedMs);
     }
 
     async function captureRecordingFrame(signal) {
@@ -2235,7 +2318,7 @@
       if (!playing) togglePlayback();
     });
     ui.progress.addEventListener('input', (event) => {
-      if (points.length) render(Number(event.target.value) / 1000);
+      if (points.length) render(Number(event.target.value) / 1000, undefined, true);
     });
     ui.speed.addEventListener('change', () => {
       speed = Number(ui.speed.value);
@@ -2258,6 +2341,17 @@
     });
     map.on('render', drawRouteOverlay);
     map.on('resize', drawRouteOverlay);
+    map.on('sourcedata', (event) => {
+      if (event.sourceId === 'terrain-dem' && event.isSourceLoaded) terrainRevision++;
+    });
+    map.on('webglcontextlost', () => { overlayMatrix = null; });
+    map.on('webglcontextrestored', () => {
+      map.once('idle', () => {
+        terrainRevision++;
+        addRouteProjectionLayer();
+        map.triggerRepaint();
+      });
+    });
     ui.dashboardCollapse.addEventListener('click', () => setDashboardCollapsed(true));
     ui.dashboardExpand.addEventListener('click', () => setDashboardCollapsed(false));
 
